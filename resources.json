@@ -4,5 +4,7 @@
   "/cyr": "resources/pages/cyr.html",
   "/doc": "resources/pages/doc.html",
   "/wiki": "resources/pages/wiki.html",
-  "/file": "resources/files/test.zip"
+  "/txt": "resources/files/text.txt",
+  "/image": "resources/files/image.jpg",
+  "/zip": "resources/files/irp_minefort_v1.6.zip"
 }

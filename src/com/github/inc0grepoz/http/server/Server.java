@@ -27,8 +27,8 @@ import java.util.stream.Collectors;
 import com.github.inc0grepoz.commons.util.json.mapper.JsonException;
 import com.github.inc0grepoz.commons.util.json.mapper.JsonMapper;
 import com.github.inc0grepoz.http.server.request.Request;
-import com.github.inc0grepoz.http.server.resource.Resource;
-import com.github.inc0grepoz.http.server.resource.ResourceFile;
+import com.github.inc0grepoz.http.server.resource.Context;
+import com.github.inc0grepoz.http.server.resource.ContextFile;
 import com.github.inc0grepoz.http.server.response.Response;
 import com.github.inc0grepoz.http.server.response.ResponseBuilder;
 import com.github.inc0grepoz.http.server.response.ResponseContentType;
@@ -39,13 +39,18 @@ public class Server
 {
 
     public static final Pattern PATTERN_WHITESPACES = Pattern.compile("\\s+");
+    public static final Response RESPONSE_404 = Response.builder()
+            .code(ResponseStatusCode.NOT_FOUND)
+            .contentType(ResponseContentType.TEXT_HTML)
+            .content("<title>404 Not Found</title><p>Unknown resource.</p>")
+            .build();
 
     private final int port;
     private final Logger logger;
 
     private final ExecutorService executorService = Executors.newCachedThreadPool();
 
-    private final Map<String, Resource> resources = new HashMap<>();
+    private final Map<String, Context> resources = new HashMap<>();
     private final JsonMapper jsonMapper = new JsonMapper();
 
     // The server is running as long, as this value is true
@@ -67,7 +72,7 @@ public class Server
             BufferedWriter out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
 
             Request request = Request.read(in);
-            Resource resource = resources.get(request.getPath());
+            Context resource = resources.get(request.getPath());
 
             if (resource != null) // method call
             {
@@ -76,21 +81,15 @@ public class Server
             }
             else // default page
             {
-                ResponseBuilder builder = Response.builder();
-                builder.code(ResponseStatusCode.NOT_FOUND);
-                builder.contentType(ResponseContentType.TEXT_HTML.toString());
-                builder.appendContent("<title>404 Not Found</title>");
-                builder.appendContent("<p>Unknown resource.</p>");
-                builder.build().write(out);
+                RESPONSE_404.write(out);
             }
 
             System.out.print("Request from ");
-            System.out.print(clientSocket.getInetAddress().getHostName() + ":" + clientSocket.getPort() + " ");
-            System.out.print("{");
-            System.out.print("\"path\": \"" + request.getPath() + "\", ");
-            System.out.print("\"method\": \"" + request.getType() + "\", ");
-            System.out.print("\"queryString\": \"" + request.getQueryString() + "\"");
-            System.out.println("}");
+            System.out.print(clientSocket.getInetAddress().getHostName());
+            System.out.print(":");
+            System.out.print(clientSocket.getPort());
+            System.out.print(" ");
+            System.out.println(request.toString());
 
             // Connection is terminated
             out.close();
@@ -118,7 +117,7 @@ public class Server
         String lines = Files.readAllLines(path).stream().collect(Collectors.joining());
         Map<String, String> resources = jsonMapper.deserialize(lines, HashMap.class, String.class, String.class);
         resources.forEach((route, filePath) -> {
-            this.resources.put(route, ResourceFile.from(new File(filePath)));
+            this.resources.put(route, ContextFile.from(new File(filePath)));
         });
     }
 
@@ -127,14 +126,14 @@ public class Server
         resources.remove(path);
     }
 
-    public void putResource(String path, Resource resource)
+    public void putResource(String path, Context resource)
     {
         resources.put(path, resource);
     }
 
     public void putResource(String path, File file)
     {
-        resources.put(path, ResourceFile.from(file));
+        resources.put(path, ContextFile.from(file));
     }
 
     public boolean isRunning()

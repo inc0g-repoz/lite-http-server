@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 public class Request
@@ -39,6 +40,15 @@ public class Request
         String[] target = context[1].split("\\?", 2);
         path = target[0];
         queryString = target.length == 1 ? null : target[1];
+    }
+
+    @Override
+    public String toString() {
+        StringJoiner joiner = new StringJoiner(", ", "{", "}");
+        joiner.add("\"path\": \"" + path + "\"");
+        joiner.add("\"method\": \"" + type + "\"");
+        joiner.add("\"queryString\": \"" + queryString + "\"");
+        return joiner.toString();
     }
 
     public RequestType getType()

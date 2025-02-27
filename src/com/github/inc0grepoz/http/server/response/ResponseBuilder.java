@@ -1,13 +1,18 @@
 package com.github.inc0grepoz.http.server.response;
 
-import java.util.Objects;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+
+import com.github.inc0grepoz.commons.util.Preconditions;
 
 public class ResponseBuilder
 {
 
     private ResponseStatusCode code;
     private String contentType;
-    private StringBuilder content = new StringBuilder();
+    private int contentLength;
+    private InputStream content;
 
     public ResponseBuilder code(ResponseStatusCode code)
     {
@@ -21,23 +26,38 @@ public class ResponseBuilder
         return this;
     }
 
-    public ResponseBuilder appendContent(String string)
+    public ResponseBuilder contentType(ResponseContentType contentType)
     {
-        content.append(string);
+        this.contentType = contentType.toString();
         return this;
     }
 
-    public ResponseBuilder appendContent(char ch)
+    public ResponseBuilder contentLength(int contentLength)
     {
-        content.append(ch);
+        this.contentLength = contentLength;
+        return this;
+    }
+
+    public ResponseBuilder content(String content)
+    {
+        this.content = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+        this.contentLength = content.length();
+        return this;
+    }
+
+    public ResponseBuilder content(InputStream content)
+    {
+        this.content = content;
         return this;
     }
 
     public Response build()
     {
-        return new Response(Objects.requireNonNull(code),
-                Objects.requireNonNull(contentType).toString(),
-                Objects.requireNonNull(content.toString()));
+        Preconditions.checkNotNull(code);
+        Preconditions.checkNotNull(contentType);
+        Preconditions.checkNotNull(content);
+        Preconditions.checkArgument(contentLength != 0);
+        return new Response(code, contentType, contentLength, content);
     }
 
 }
