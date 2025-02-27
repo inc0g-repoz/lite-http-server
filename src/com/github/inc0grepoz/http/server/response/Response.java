@@ -15,14 +15,16 @@ public class Response
     }
 
     private final ResponseStatusCode code;
-    private final String contentType;
+    private final String contentType, contentEncoding;
     private final int contentLength;
     private final InputStream content;
 
-    Response(ResponseStatusCode code, String contentType, int contentLength, InputStream content)
+    Response(ResponseStatusCode code, String contentType, String contentEncoding,
+            int contentLength, InputStream content)
     {
         this.code = code;
         this.contentType = contentType;
+        this.contentEncoding = contentEncoding;
         this.contentLength = contentLength;
         this.content = content;
     }
@@ -37,6 +39,12 @@ public class Response
             // Header
             out.write("Date: Fri, 31 Dec 1999 23:59:59 GMT\r\n");
             out.write("Server: Apache/0.8.4\r\n");
+
+            if (contentEncoding != null)
+            {
+                out.write("Content-Encoding: " + contentEncoding);
+            }
+
             out.write("Content-Type: " + contentType + "\r\n");
             out.write("Content-Length: " + contentLength + "\r\n");
             out.write("Expires: Sat, 01 Jan 2000 00:59:59 GMT\r\n");
@@ -50,10 +58,12 @@ public class Response
                 InputStreamReader reader = new InputStreamReader
                 (content, StandardCharsets.UTF_8)
             ) {
+                while (!reader.ready());
                 for (int i; (i = reader.read()) != -1;) {
                     out.write((char) i);
                 }
             } catch (IOException e) {
+                e.printStackTrace();
             }
         }
         catch (IOException e)

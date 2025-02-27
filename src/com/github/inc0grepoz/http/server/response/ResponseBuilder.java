@@ -10,7 +10,7 @@ public class ResponseBuilder
 {
 
     private ResponseStatusCode code;
-    private String contentType;
+    private String contentType, contentEncoding;
     private int contentLength;
     private InputStream content;
 
@@ -29,6 +29,12 @@ public class ResponseBuilder
     public ResponseBuilder contentType(ResponseContentType contentType)
     {
         this.contentType = contentType.toString();
+        return this;
+    }
+
+    public ResponseBuilder contentEncoding(String contentEncoding)
+    {
+        this.contentEncoding = contentEncoding;
         return this;
     }
 
@@ -57,7 +63,7 @@ public class ResponseBuilder
         Preconditions.checkNotNull(contentType);
         Preconditions.checkNotNull(content);
         Preconditions.checkArgument(contentLength != 0);
-        return new Response(code, contentType, contentLength, content);
+        return new Response(code, contentType, contentEncoding, contentLength, content);
     }
 
 }

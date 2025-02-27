@@ -111,6 +111,7 @@ public class Server
                 System.out.println(request.toString());
 
                 // Connection is terminated
+                System.out.println("Closing the socket");
                 out.close();
                 in.close(); // input is received
                 clientSocket.close();

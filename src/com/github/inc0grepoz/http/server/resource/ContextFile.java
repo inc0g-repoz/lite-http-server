@@ -28,8 +28,11 @@ public class ContextFile implements Context {
         try {
              connection = file.toURI().toURL().openConnection();
 //           connection.setReadTimeout(10_000);
-             connection.connect();
 
+             System.out.println("Header Fields Count: " + connection.getHeaderFields().size());
+             connection.getHeaderFields().forEach((k, v) -> {
+                 System.out.println(k + ": " + v);
+             });
              args.forEach((k, v) -> connection.addRequestProperty(k, v));
         } catch (Throwable t) {
             throw new IllegalArgumentException("File \"" + file.getName() + "\" not found", t);
@@ -38,6 +41,7 @@ public class ContextFile implements Context {
         ResponseBuilder builder = Response.builder();
         builder.code(ResponseStatusCode.OK);
         builder.contentType(connection.getContentType());
+        builder.contentEncoding(connection.getContentEncoding());
         builder.contentLength(connection.getContentLength());
 
         try {
