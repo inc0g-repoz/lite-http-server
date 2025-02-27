@@ -18,6 +18,7 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
@@ -30,7 +31,6 @@ import com.github.inc0grepoz.http.server.request.Request;
 import com.github.inc0grepoz.http.server.resource.Context;
 import com.github.inc0grepoz.http.server.resource.ContextFile;
 import com.github.inc0grepoz.http.server.response.Response;
-import com.github.inc0grepoz.http.server.response.ResponseBuilder;
 import com.github.inc0grepoz.http.server.response.ResponseContentType;
 import com.github.inc0grepoz.http.server.response.ResponseStatusCode;
 
@@ -50,7 +50,7 @@ public class Server
 
     private final ExecutorService executorService = Executors.newCachedThreadPool();
 
-    private final Map<String, Context> resources = new HashMap<>();
+    private final Map<String, Context> resources = new ConcurrentHashMap<>();
     private final JsonMapper jsonMapper = new JsonMapper();
 
     // The server is running as long, as this value is true
@@ -64,43 +64,63 @@ public class Server
 
     private void loop(ServerSocket serverSocket)
     {
+        Socket clientSocket;
+
         // If new sockets connect, the request is handled
         // and the connection is terminated
-        try (Socket clientSocket = serverSocket.accept())
+        try
         {
-            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            BufferedWriter out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+            clientSocket = serverSocket.accept();
 
-            Request request = Request.read(in);
-            Context resource = resources.get(request.getPath());
-
-            if (resource != null) // method call
+            if (clientSocket == null)
             {
-                Map<String, String> args = request.resolveArguments();
-                resource.handle(args, out).write(out);
-            }
-            else // default page
-            {
-                RESPONSE_404.write(out);
+                return;
             }
 
-            System.out.print("Request from ");
-            System.out.print(clientSocket.getInetAddress().getHostName());
-            System.out.print(":");
-            System.out.print(clientSocket.getPort());
-            System.out.print(" ");
-            System.out.println(request.toString());
-
-            // Connection is terminated
-            out.close();
-            in.close(); // input is received
-            clientSocket.close();
         }
-        catch (Throwable e)
+        catch (IOException e)
         {
             logger.warning(e.getMessage());
-            e.printStackTrace();
+            return;
         }
+
+        executorService.execute(() -> {
+            try
+            {
+                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                BufferedWriter out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+
+                Request request = Request.read(in);
+                Context resource = resources.get(request.getPath());
+
+                if (resource != null) // method call
+                {
+                    Map<String, String> args = request.resolveArguments();
+                    resource.handle(args, out).write(out);
+                }
+                else // default page
+                {
+                    RESPONSE_404.write(out);
+                }
+
+                System.out.print("Request from ");
+                System.out.print(clientSocket.getInetAddress().getHostName());
+                System.out.print(":");
+                System.out.print(clientSocket.getPort());
+                System.out.print(" ");
+                System.out.println(request.toString());
+
+                // Connection is terminated
+                out.close();
+                in.close(); // input is received
+                clientSocket.close();
+            }
+            catch (Throwable e)
+            {
+                logger.warning(e.getMessage());
+                e.printStackTrace();
+            }
+        });
     }
 
     public void loadResourcesFromFiles() throws JsonException, IOException
@@ -143,6 +163,11 @@ public class Server
 
     public void start() throws IOException
     {
+        if (running)
+        {
+            throw new IllegalStateException("Already started");
+        }
+
         running = true;
 
         // Initializing the server socket

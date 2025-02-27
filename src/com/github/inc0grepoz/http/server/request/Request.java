@@ -8,7 +8,6 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 import java.util.StringJoiner;
-import java.util.stream.Collectors;
 
 public class Request
 {
@@ -33,7 +32,6 @@ public class Request
 
     private Request(Queue<String> raw)
     {
-        System.out.println(raw.stream().collect(Collectors.joining(", ", "Raw: ", "")));
         String[] context = raw.poll().split(" ");
         type = RequestType.valueOf(context[0]);
 
