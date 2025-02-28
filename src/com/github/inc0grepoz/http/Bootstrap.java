@@ -17,7 +17,7 @@ public class Bootstrap
     {
         Server server = new Server(Logger.getLogger("INFO"), 80);
 
-        server.getContextManager().register("/api/test", (type, map, out) -> {
+        server.getContextManager().register("/api/test", (type, map) -> {
             ResponseBuilder builder = Response.builder();
             StringJoiner joiner = new StringJoiner("\n");
 
@@ -38,7 +38,7 @@ public class Bootstrap
             return builder.build();
         });
 
-        server.getContextManager().register("/redirect", (type, map, out) -> {
+        server.getContextManager().register("/redirect", (type, map) -> {
             return Response.redirect("https://google.com/");
         });
 

@@ -2,6 +2,8 @@ package com.github.inc0grepoz.http.server.request;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -12,12 +14,13 @@ import java.util.StringJoiner;
 public class Request
 {
 
-    public static Request read(BufferedReader in) throws IOException
+    public static Request read(InputStream in) throws IOException
     {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
         Queue<String> raw = new LinkedList<>();
         String line;
 
-        while ((line = in.readLine()) != null)
+        while ((line = reader.readLine()) != null)
         {
             if (line.isEmpty()) break;
 //          System.out.println(line);

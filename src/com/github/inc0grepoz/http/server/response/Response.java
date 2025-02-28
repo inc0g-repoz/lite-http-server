@@ -1,9 +1,8 @@
 package com.github.inc0grepoz.http.server.response;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -49,23 +48,23 @@ public class Response
         this.content = content;
     }
 
-    public void write(BufferedWriter out) throws IOException
+    public void write(OutputStream out) throws IOException
     {
         // Code
-        out.write("HTTP/1.1 " + code.toString() + "\r\n");
+        out.write(("HTTP/1.1 " + code.toString() + "\r\n").getBytes());
 
         // Headers
-        out.write("Date: Fri, 31 Dec 1999 23:59:59 GMT\r\n");
-        out.write("Server: Apache/0.8.4\r\n");
+        out.write(("Date: Fri, 31 Dec 1999 23:59:59 GMT\r\n").getBytes());
+        out.write(("Server: Apache/0.8.4\r\n").getBytes());
 
         for (Entry<String, String> entry: headers.entrySet())
         {
-            out.write(entry.getKey() + ": " + entry.getValue() + "\r\n");
+            out.write((entry.getKey() + ": " + entry.getValue() + "\r\n").getBytes());
             System.out.println("Sending header " + entry.getKey() + ": " + entry.getValue());
         }
 
-        out.write("Expires: Sat, 01 Jan 2000 00:59:59 GMT\r\n");
-        out.write("Last-modified: Fri, 09 Aug 1996 14:21:40 GMT\r\n");
+        out.write(("Expires: Sat, 01 Jan 2000 00:59:59 GMT\r\n").getBytes());
+        out.write(("Last-modified: Fri, 09 Aug 1996 14:21:40 GMT\r\n").getBytes());
 
         if (content == null)
         {
@@ -73,15 +72,13 @@ public class Response
         }
 
         // A line-breaker before content
-        out.write("\r\n");
+        out.write(("\r\n").getBytes());
 
         // Content (StandardCharsets.UTF_8 breaks it)
-        try (InputStreamReader reader = new InputStreamReader(content)) {
-            while (!reader.ready());
-            for (int i; (i = reader.read()) != -1;)
-            {
-                out.write((char) i);
-            }
+        byte[] buffer = new byte[4096];
+        while (content.read(buffer) != -1)
+        {
+            out.write(buffer);
         }
     }
 

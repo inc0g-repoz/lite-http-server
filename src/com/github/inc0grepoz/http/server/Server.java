@@ -1,10 +1,8 @@
 package com.github.inc0grepoz.http.server;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Map;
@@ -61,8 +59,8 @@ public class Server
         executorService.execute(() -> {
             try
             {
-                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                BufferedWriter out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+                InputStream in = clientSocket.getInputStream();
+                OutputStream out = clientSocket.getOutputStream();
 
                 Request request = Request.read(in);
                 Context resource = contextManager.find(request.getPath());
@@ -73,7 +71,7 @@ public class Server
                 if (resource != null) // method call
                 {
                     Map<String, String> args = request.resolveArguments();
-                    resource.generate(request.getType(), args, out).write(out);
+                    resource.generate(request.getType(), args).write(out);
                 }
                 else // default page
                 {
