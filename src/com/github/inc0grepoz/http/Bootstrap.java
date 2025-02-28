@@ -38,6 +38,10 @@ public class Bootstrap
             return builder.build();
         });
 
+        server.getContextManager().register("/redirect", (type, map, out) -> {
+            return Response.redirect("https://google.com/");
+        });
+
         server.getContextManager().load(new File("resources.json"));
         server.start();
     }

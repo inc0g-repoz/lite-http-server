@@ -84,7 +84,7 @@ public class Server
                 }
                 else // default page
                 {
-                    Response.RESPONSE_404.write(out);
+                    Response.notFound().write(out);
                 }
 
                 // Connection is terminated

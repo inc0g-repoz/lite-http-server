@@ -11,18 +11,6 @@ import java.util.Map.Entry;
 public class Response
 {
 
-    public static final Response RESPONSE_404 = builder()
-            .code(ResponseStatusCode.NOT_FOUND)
-            .contentType(ResponseContentType.TEXT_HTML)
-            .content("<html>\r\n"
-                    + "<head><title>404 Not Found</title></head>\r\n"
-                    + "<body bgcolor=\"white\">\r\n"
-                    + "<center><h1>404 Not Found</h1></center>\r\n"
-                    + "<hr><center>nginx/0.8.54</center>\r\n"
-                    + "</body>\r\n"
-                    + "</html>")
-            .build();
-
     public static ResponseBuilder builder()
     {
         return new ResponseBuilder();
@@ -32,7 +20,22 @@ public class Response
     {
         return builder()
                 .code(ResponseStatusCode.TEMPORARY_REDIRECT)
-                .header("Location", url)
+                .location(url)
+                .build();
+    }
+
+    public static Response notFound()
+    {
+        return builder()
+                .code(ResponseStatusCode.NOT_FOUND)
+                .contentType(ResponseContentType.TEXT_HTML)
+                .content("<html>\r\n"
+                        + "<head><title>404 Not Found</title></head>\r\n"
+                        + "<body bgcolor=\"white\">\r\n"
+                        + "<center><h1>404 Not Found</h1></center>\r\n"
+                        + "<hr><center>nginx/0.8.54</center>\r\n"
+                        + "</body>\r\n"
+                        + "</html>")
                 .build();
     }
 
@@ -61,6 +64,7 @@ public class Response
             for (Entry<String, String> entry: headers.entrySet())
             {
                 out.write(entry.getKey() + ": " + entry.getValue() + "\r\n");
+                System.out.println("Sending header " + entry.getKey() + ": " + entry.getValue());
             }
 
             out.write("Expires: Sat, 01 Jan 2000 00:59:59 GMT\r\n");
@@ -80,7 +84,8 @@ public class Response
                 (content, StandardCharsets.UTF_8)
             ) {
                 while (!reader.ready());
-                for (int i; (i = reader.read()) != -1;) {
+                for (int i; (i = reader.read()) != -1;)
+                {
                     out.write((char) i);
                 }
             } catch (IOException e) {

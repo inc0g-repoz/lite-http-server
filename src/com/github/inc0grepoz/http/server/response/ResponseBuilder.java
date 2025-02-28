@@ -23,7 +23,7 @@ public class ResponseBuilder
 
     public ResponseBuilder header(String key, String value)
     {
-        headers.put(key, value);
+        headers.compute(key, (k, v) -> value);
         return this;
     }
 
@@ -50,6 +50,11 @@ public class ResponseBuilder
     public ResponseBuilder contentLength(int contentLength)
     {
         return header("Content-Length", contentLength);
+    }
+
+    public ResponseBuilder location(String location)
+    {
+        return header("Location", location);
     }
 
     public ResponseBuilder content(String content)
