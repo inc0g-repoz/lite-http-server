@@ -6,35 +6,38 @@ import java.io.FileInputStream;
 import java.net.URLConnection;
 import java.util.Map;
 
+import com.github.inc0grepoz.http.server.request.RequestType;
 import com.github.inc0grepoz.http.server.response.Response;
 import com.github.inc0grepoz.http.server.response.ResponseBuilder;
 import com.github.inc0grepoz.http.server.response.ResponseStatusCode;
 
-public class ContextFile implements Context {
+public class ContextFile implements Context
+{
 
-    public static ContextFile from(File file) {
+    public static ContextFile from(File file)
+    {
         return new ContextFile(file);
     }
 
     private final File file;
 
-    public ContextFile(File file) {
+    public ContextFile(File file)
+    {
         this.file = file;
     }
 
     @Override
-    public Response handle(Map<String, String> args, BufferedWriter out) {
+    public Response handle(RequestType type, Map<String, String> args, BufferedWriter out)
+    {
         URLConnection connection;
-        try {
+        try
+        {
              connection = file.toURI().toURL().openConnection();
 //           connection.setReadTimeout(10_000);
-
-             System.out.println("Header Fields Count: " + connection.getHeaderFields().size());
-             connection.getHeaderFields().forEach((k, v) -> {
-                 System.out.println(k + ": " + v);
-             });
              args.forEach((k, v) -> connection.addRequestProperty(k, v));
-        } catch (Throwable t) {
+        }
+        catch (Throwable t)
+        {
             throw new IllegalArgumentException("File \"" + file.getName() + "\" not found", t);
         }
 
@@ -44,9 +47,12 @@ public class ContextFile implements Context {
         builder.contentEncoding(connection.getContentEncoding());
         builder.contentLength(connection.getContentLength());
 
-        try {
+        try
+        {
             builder.content(new FileInputStream(file));
-        } catch (Throwable t) {
+        }
+        catch (Throwable t)
+        {
             throw new RuntimeException();
         }
 

@@ -3,6 +3,8 @@ package com.github.inc0grepoz.http.server.response;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.github.inc0grepoz.commons.util.Preconditions;
 
@@ -10,8 +12,7 @@ public class ResponseBuilder
 {
 
     private ResponseStatusCode code;
-    private String contentType, contentEncoding;
-    private int contentLength;
+    private Map<String, String> headers = new HashMap<>();
     private InputStream content;
 
     public ResponseBuilder code(ResponseStatusCode code)
@@ -20,34 +21,41 @@ public class ResponseBuilder
         return this;
     }
 
+    public ResponseBuilder header(String key, String value)
+    {
+        headers.put(key, value);
+        return this;
+    }
+
+    public ResponseBuilder header(String key, int value)
+    {
+        return header(key, Integer.toString(value));
+    }
+
     public ResponseBuilder contentType(String contentType)
     {
-        this.contentType = contentType;
-        return this;
+        return header("Content-Type", contentType);
     }
 
     public ResponseBuilder contentType(ResponseContentType contentType)
     {
-        this.contentType = contentType.toString();
-        return this;
+        return header("Content-Type", contentType.toString());
     }
 
     public ResponseBuilder contentEncoding(String contentEncoding)
     {
-        this.contentEncoding = contentEncoding;
-        return this;
+        return header("Content-Encoding", contentEncoding);
     }
 
     public ResponseBuilder contentLength(int contentLength)
     {
-        this.contentLength = contentLength;
-        return this;
+        return header("Content-Length", contentLength);
     }
 
     public ResponseBuilder content(String content)
     {
         this.content = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
-        this.contentLength = content.length();
+        contentLength(content.length());
         return this;
     }
 
@@ -60,10 +68,8 @@ public class ResponseBuilder
     public Response build()
     {
         Preconditions.checkNotNull(code);
-        Preconditions.checkNotNull(contentType);
-        Preconditions.checkNotNull(content);
-        Preconditions.checkArgument(contentLength != 0);
-        return new Response(code, contentType, contentEncoding, contentLength, content);
+        Preconditions.checkArgument(!headers.isEmpty(), "No headers specified");
+        return new Response(code, headers, content);
     }
 
 }

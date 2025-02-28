@@ -2,56 +2,38 @@ package com.github.inc0grepoz.http.server;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
-import com.github.inc0grepoz.commons.util.json.mapper.JsonException;
 import com.github.inc0grepoz.commons.util.json.mapper.JsonMapper;
 import com.github.inc0grepoz.http.server.request.Request;
 import com.github.inc0grepoz.http.server.resource.Context;
-import com.github.inc0grepoz.http.server.resource.ContextFile;
+import com.github.inc0grepoz.http.server.resource.ContextManager;
 import com.github.inc0grepoz.http.server.response.Response;
-import com.github.inc0grepoz.http.server.response.ResponseContentType;
-import com.github.inc0grepoz.http.server.response.ResponseStatusCode;
 
-@SuppressWarnings("unchecked")
 public class Server
 {
-
-    public static final Pattern PATTERN_WHITESPACES = Pattern.compile("\\s+");
-    public static final Response RESPONSE_404 = Response.builder()
-            .code(ResponseStatusCode.NOT_FOUND)
-            .contentType(ResponseContentType.TEXT_HTML)
-            .content("<title>404 Not Found</title><p>Unknown resource.</p>")
-            .build();
 
     private final int port;
     private final Logger logger;
 
-    private final ExecutorService executorService = Executors.newCachedThreadPool();
-
-    private final Map<String, Context> resources = new ConcurrentHashMap<>();
     private final JsonMapper jsonMapper = new JsonMapper();
+    private final ExecutorService executorService = Executors.newCachedThreadPool();
+    private final ContextManager contextManager = new ContextManager(this);
 
     // The server is running as long, as this value is true
     private boolean running;
@@ -66,8 +48,6 @@ public class Server
     {
         Socket clientSocket;
 
-        // If new sockets connect, the request is handled
-        // and the connection is terminated
         try
         {
             clientSocket = serverSocket.accept();
@@ -76,7 +56,6 @@ public class Server
             {
                 return;
             }
-
         }
         catch (IOException e)
         {
@@ -84,6 +63,8 @@ public class Server
             return;
         }
 
+        // If new sockets connect, the request is handled
+        // and the connection is terminated
         executorService.execute(() -> {
             try
             {
@@ -91,30 +72,27 @@ public class Server
                 BufferedWriter out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
 
                 Request request = Request.read(in);
-                Context resource = resources.get(request.getPath());
+                Context resource = contextManager.find(request.getPath());
+
+                String host = clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getPort();
+                System.out.println("Handling a request from " + host + " " + request.toString());
 
                 if (resource != null) // method call
                 {
                     Map<String, String> args = request.resolveArguments();
-                    resource.handle(args, out).write(out);
+                    resource.handle(request.getType(), args, out).write(out);
                 }
                 else // default page
                 {
-                    RESPONSE_404.write(out);
+                    Response.RESPONSE_404.write(out);
                 }
 
-                System.out.print("Request from ");
-                System.out.print(clientSocket.getInetAddress().getHostName());
-                System.out.print(":");
-                System.out.print(clientSocket.getPort());
-                System.out.print(" ");
-                System.out.println(request.toString());
-
                 // Connection is terminated
-                System.out.println("Closing the socket");
                 out.close();
                 in.close(); // input is received
                 clientSocket.close();
+
+                System.out.println("Closed the socket for " + host);
             }
             catch (Throwable e)
             {
@@ -122,39 +100,6 @@ public class Server
                 e.printStackTrace();
             }
         });
-    }
-
-    public void loadResourcesFromFiles() throws JsonException, IOException
-    {
-        // Validating the resources file
-        File file = new File("resources.json");
-        if (!file.exists())
-        {
-            throw new IOException("File resources.json not found");
-        }
-
-        // Loading resources
-        Path path = FileSystems.getDefault().getPath("resources.json");
-        String lines = Files.readAllLines(path).stream().collect(Collectors.joining());
-        Map<String, String> resources = jsonMapper.deserialize(lines, HashMap.class, String.class, String.class);
-        resources.forEach((route, filePath) -> {
-            this.resources.put(route, ContextFile.from(new File(filePath)));
-        });
-    }
-
-    public void removeResource(String path)
-    {
-        resources.remove(path);
-    }
-
-    public void putResource(String path, Context resource)
-    {
-        resources.put(path, resource);
-    }
-
-    public void putResource(String path, File file)
-    {
-        resources.put(path, ContextFile.from(file));
     }
 
     public boolean isRunning()
@@ -240,6 +185,11 @@ public class Server
     public ExecutorService getThreadPool()
     {
         return executorService;
+    }
+
+    public ContextManager getContextManager()
+    {
+        return contextManager;
     }
 
 }

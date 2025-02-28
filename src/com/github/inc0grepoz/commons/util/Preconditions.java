@@ -10,11 +10,8 @@ package com.github.inc0grepoz.commons.util;
  *
  * @author inc0g-repoz
  */
-public final class Preconditions {
-
-    private Preconditions() {
-        throw new UnsupportedOperationException();
-    }
+public final class Preconditions
+{
 
     /**
      * Ensures the truth of an expression involving one or more parameters to the calling method.
@@ -22,7 +19,8 @@ public final class Preconditions {
      * @param expression a boolean expression
      * @throws IllegalArgumentException if {@code expression} is false
      */
-    public static void checkArgument(boolean expression) {
+    public static void checkArgument(boolean expression)
+    {
         if (!expression) throw new IllegalArgumentException();
     }
 
@@ -34,7 +32,8 @@ public final class Preconditions {
      *     string using {@link String#valueOf(Object)}
      * @throws IllegalArgumentException if {@code expression} is false
      */
-    public static void checkArgument(boolean expression, Object errorMessage) {
+    public static void checkArgument(boolean expression, Object errorMessage)
+    {
         if (!expression) throw new IllegalArgumentException(String.valueOf(errorMessage));
     }
 
@@ -45,7 +44,8 @@ public final class Preconditions {
      * @return the non-null reference that was validated
      * @throws NullPointerException if {@code reference} is null
      */
-    public static <T> T checkNotNull(T reference) {
+    public static <T> T checkNotNull(T reference)
+    {
         if (reference == null) throw new NullPointerException();
         return reference;
     }
@@ -59,7 +59,8 @@ public final class Preconditions {
      * @return the non-null reference that was validated
      * @throws NullPointerException if {@code reference} is null
      */
-    public static <T> T checkNotNull(T reference, Object errorMessage) {
+    public static <T> T checkNotNull(T reference, Object errorMessage)
+    {
         if (reference == null) throw new NullPointerException(String.valueOf(errorMessage));
         return reference;
     }
@@ -74,7 +75,8 @@ public final class Preconditions {
      * @throws IndexOutOfBoundsException if {@code index} is negative or is not less than {@code size}
      * @throws IllegalArgumentException if {@code size} is negative
      */
-    public static int checkElementIndex(int index, int size) {
+    public static int checkElementIndex(int index, int size)
+    {
         if (index < 0) throw new IllegalArgumentException
             ("index (" + index + ") must not be negative");
         if (size <= 0) throw new IllegalArgumentException
@@ -82,6 +84,11 @@ public final class Preconditions {
         if (size <= index) throw new IndexOutOfBoundsException
             ("index (" + index + ") must be in range [0; " + Integer.toString(size - 1) + "]");
         return index;
+    }
+
+    private Preconditions()
+    {
+        throw new UnsupportedOperationException();
     }
 
 }

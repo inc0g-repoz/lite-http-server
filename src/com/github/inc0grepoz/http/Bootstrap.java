@@ -1,5 +1,6 @@
 package com.github.inc0grepoz.http;
 
+import java.io.File;
 import java.util.StringJoiner;
 import java.util.logging.Logger;
 
@@ -16,32 +17,28 @@ public class Bootstrap
     {
         Server server = new Server(Logger.getLogger("INFO"), 80);
 
-        server.putResource("/api/test", (map, out) -> {
+        server.getContextManager().register("/api/test", (type, map, out) -> {
             ResponseBuilder builder = Response.builder();
-            builder.contentType(ResponseContentType.TEXT_HTML);
-
             StringJoiner joiner = new StringJoiner("\n");
-            joiner.add("<title>REST-API</title>");
 
             if (map.isEmpty())
             {
-                joiner.add("<p>No arguments specified.</p>");
+                joiner.add("<title>REST-API</title><p>No arguments specified.</p>");
                 builder.code(ResponseStatusCode.BAD_REQUEST);
+                builder.contentType(ResponseContentType.TEXT_HTML);
             }
             else
             {
-                map.forEach((k, v) -> {
-                    joiner.add("<p>" + k + "=" + v + "</p>");
-                });
-
+                joiner.add(server.getJsonMapper().serialize(map));
                 builder.code(ResponseStatusCode.OK);
+                builder.contentType(ResponseContentType.APP_JSON);
             }
 
             builder.content(joiner.toString());
             return builder.build();
         });
 
-        server.loadResourcesFromFiles();
+        server.getContextManager().load(new File("resources.json"));
         server.start();
     }
 

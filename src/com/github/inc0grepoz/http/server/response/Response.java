@@ -5,27 +5,45 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.Map.Entry;
 
 public class Response
 {
+
+    public static final Response RESPONSE_404 = builder()
+            .code(ResponseStatusCode.NOT_FOUND)
+            .contentType(ResponseContentType.TEXT_HTML)
+            .content("<html>\r\n"
+                    + "<head><title>404 Not Found</title></head>\r\n"
+                    + "<body bgcolor=\"white\">\r\n"
+                    + "<center><h1>404 Not Found</h1></center>\r\n"
+                    + "<hr><center>nginx/0.8.54</center>\r\n"
+                    + "</body>\r\n"
+                    + "</html>")
+            .build();
 
     public static ResponseBuilder builder()
     {
         return new ResponseBuilder();
     }
 
+    public static Response redirect(String url)
+    {
+        return builder()
+                .code(ResponseStatusCode.TEMPORARY_REDIRECT)
+                .header("Location", url)
+                .build();
+    }
+
     private final ResponseStatusCode code;
-    private final String contentType, contentEncoding;
-    private final int contentLength;
+    private final Map<String, String> headers;
     private final InputStream content;
 
-    Response(ResponseStatusCode code, String contentType, String contentEncoding,
-            int contentLength, InputStream content)
+    Response(ResponseStatusCode code, Map<String, String> headers, InputStream content)
     {
         this.code = code;
-        this.contentType = contentType;
-        this.contentEncoding = contentEncoding;
-        this.contentLength = contentLength;
+        this.headers = headers;
         this.content = content;
     }
 
@@ -36,19 +54,22 @@ public class Response
             // Code
             out.write("HTTP/1.1 " + code.toString() + "\r\n");
 
-            // Header
+            // Headers
             out.write("Date: Fri, 31 Dec 1999 23:59:59 GMT\r\n");
             out.write("Server: Apache/0.8.4\r\n");
 
-            if (contentEncoding != null)
+            for (Entry<String, String> entry: headers.entrySet())
             {
-                out.write("Content-Encoding: " + contentEncoding);
+                out.write(entry.getKey() + ": " + entry.getValue() + "\r\n");
             }
 
-            out.write("Content-Type: " + contentType + "\r\n");
-            out.write("Content-Length: " + contentLength + "\r\n");
             out.write("Expires: Sat, 01 Jan 2000 00:59:59 GMT\r\n");
             out.write("Last-modified: Fri, 09 Aug 1996 14:21:40 GMT\r\n");
+
+            if (content == null)
+            {
+                return; // likely a no content or redirect
+            }
 
             // A line-breaker before content
             out.write("\r\n");

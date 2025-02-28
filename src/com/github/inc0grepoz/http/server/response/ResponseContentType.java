@@ -1,6 +1,7 @@
 package com.github.inc0grepoz.http.server.response;
 
-public enum ResponseContentType {
+public enum ResponseContentType
+{
 
     APP_JAVA_ARCHIVE("application/java-archive"),
     APP_EDI_X12("application/EDI-X12"),
