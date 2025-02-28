@@ -7,13 +7,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardWatchEventKinds;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -54,12 +47,12 @@ public class Server
 
             if (clientSocket == null)
             {
-                return;
+                return; // no socket to handle
             }
         }
         catch (IOException e)
         {
-            logger.warning(e.getMessage());
+            System.err.println(e.getMessage());
             return;
         }
 
@@ -84,6 +77,7 @@ public class Server
                 }
                 else // default page
                 {
+                    
                     Response.notFound().write(out);
                 }
 
@@ -132,36 +126,7 @@ public class Server
             }
             catch (Throwable e)
             {
-                logger.warning(e.getMessage());
-            }
-        });
-
-        // Starting a watch service
-        executorService.execute(() -> {
-            try
-            {
-                WatchService watchService = FileSystems.getDefault().newWatchService();
-                Path dir = Paths.get(System.getProperty("user.dir"));
-
-                dir.register(watchService,
-                        StandardWatchEventKinds.ENTRY_CREATE, 
-                        StandardWatchEventKinds.ENTRY_DELETE, 
-                        StandardWatchEventKinds.ENTRY_MODIFY);
-
-                WatchKey key;
-
-                while ((key = watchService.take()) != null)
-                {
-                    for (WatchEvent<?> event : key.pollEvents())
-                    {
-                        System.out.println("Event kind:" + event.kind() + ". File affected: " + event.context() + ".");
-                    }
-                    key.reset();
-                }
-            }
-            catch (IOException | InterruptedException e)
-            {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
             }
         });
     }
