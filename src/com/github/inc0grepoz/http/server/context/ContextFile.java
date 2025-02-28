@@ -1,8 +1,9 @@
-package com.github.inc0grepoz.http.server.resource;
+package com.github.inc0grepoz.http.server.context;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.URLConnection;
 import java.util.Map;
 
@@ -27,34 +28,18 @@ public class ContextFile implements Context
     }
 
     @Override
-    public Response handle(RequestType type, Map<String, String> args, BufferedWriter out)
+    public Response generate(RequestType type, Map<String, String> args,
+            BufferedWriter out) throws IOException
     {
-        URLConnection connection;
-        try
-        {
-             connection = file.toURI().toURL().openConnection();
-//           connection.setReadTimeout(10_000);
-             args.forEach((k, v) -> connection.addRequestProperty(k, v));
-        }
-        catch (Throwable t)
-        {
-            throw new IllegalArgumentException("File \"" + file.getName() + "\" not found", t);
-        }
+        URLConnection connection = file.toURI().toURL().openConnection();
+        args.forEach((k, v) -> connection.addRequestProperty(k, v));
 
         ResponseBuilder builder = Response.builder();
         builder.code(ResponseStatusCode.OK);
         builder.contentType(connection.getContentType());
         builder.contentEncoding(connection.getContentEncoding());
         builder.contentLength(connection.getContentLength());
-
-        try
-        {
-            builder.content(new FileInputStream(file));
-        }
-        catch (Throwable t)
-        {
-            throw new RuntimeException();
-        }
+        builder.content(new FileInputStream(file));
 
         return builder.build();
     }

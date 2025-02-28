@@ -1,6 +1,7 @@
-package com.github.inc0grepoz.http.server.resource;
+package com.github.inc0grepoz.http.server.context;
 
 import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.Map;
 
 import com.github.inc0grepoz.http.server.request.RequestType;
@@ -10,6 +11,7 @@ import com.github.inc0grepoz.http.server.response.Response;
 public interface Context
 {
 
-    Response handle(RequestType type, Map<String, String> args, BufferedWriter out);
+    Response generate(RequestType type, Map<String, String> args,
+            BufferedWriter out) throws IOException;
 
 }

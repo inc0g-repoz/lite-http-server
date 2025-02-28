@@ -4,7 +4,6 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -50,51 +49,39 @@ public class Response
         this.content = content;
     }
 
-    public void write(BufferedWriter out)
+    public void write(BufferedWriter out) throws IOException
     {
-        try
+        // Code
+        out.write("HTTP/1.1 " + code.toString() + "\r\n");
+
+        // Headers
+        out.write("Date: Fri, 31 Dec 1999 23:59:59 GMT\r\n");
+        out.write("Server: Apache/0.8.4\r\n");
+
+        for (Entry<String, String> entry: headers.entrySet())
         {
-            // Code
-            out.write("HTTP/1.1 " + code.toString() + "\r\n");
-
-            // Headers
-            out.write("Date: Fri, 31 Dec 1999 23:59:59 GMT\r\n");
-            out.write("Server: Apache/0.8.4\r\n");
-
-            for (Entry<String, String> entry: headers.entrySet())
-            {
-                out.write(entry.getKey() + ": " + entry.getValue() + "\r\n");
-                System.out.println("Sending header " + entry.getKey() + ": " + entry.getValue());
-            }
-
-            out.write("Expires: Sat, 01 Jan 2000 00:59:59 GMT\r\n");
-            out.write("Last-modified: Fri, 09 Aug 1996 14:21:40 GMT\r\n");
-
-            if (content == null)
-            {
-                return; // likely a no content or redirect
-            }
-
-            // A line-breaker before content
-            out.write("\r\n");
-
-            // Content
-            try (
-                InputStreamReader reader = new InputStreamReader
-                (content, StandardCharsets.UTF_8)
-            ) {
-                while (!reader.ready());
-                for (int i; (i = reader.read()) != -1;)
-                {
-                    out.write((char) i);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            out.write(entry.getKey() + ": " + entry.getValue() + "\r\n");
+            System.out.println("Sending header " + entry.getKey() + ": " + entry.getValue());
         }
-        catch (IOException e)
+
+        out.write("Expires: Sat, 01 Jan 2000 00:59:59 GMT\r\n");
+        out.write("Last-modified: Fri, 09 Aug 1996 14:21:40 GMT\r\n");
+
+        if (content == null)
         {
-            e.printStackTrace();
+            return; // likely a no content or redirect
+        }
+
+        // A line-breaker before content
+        out.write("\r\n");
+
+        // Content (StandardCharsets.UTF_8 breaks it)
+        try (InputStreamReader reader = new InputStreamReader(content)) {
+            while (!reader.ready());
+            for (int i; (i = reader.read()) != -1;)
+            {
+                out.write((char) i);
+            }
         }
     }
 

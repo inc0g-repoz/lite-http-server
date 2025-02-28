@@ -1,4 +1,4 @@
-package com.github.inc0grepoz.http.server.resource;
+package com.github.inc0grepoz.http.server.context;
 
 import java.io.File;
 import java.io.IOException;

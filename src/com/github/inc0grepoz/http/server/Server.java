@@ -20,9 +20,9 @@ import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import com.github.inc0grepoz.commons.util.json.mapper.JsonMapper;
+import com.github.inc0grepoz.http.server.context.Context;
+import com.github.inc0grepoz.http.server.context.ContextManager;
 import com.github.inc0grepoz.http.server.request.Request;
-import com.github.inc0grepoz.http.server.resource.Context;
-import com.github.inc0grepoz.http.server.resource.ContextManager;
 import com.github.inc0grepoz.http.server.response.Response;
 
 public class Server
@@ -80,7 +80,7 @@ public class Server
                 if (resource != null) // method call
                 {
                     Map<String, String> args = request.resolveArguments();
-                    resource.handle(request.getType(), args, out).write(out);
+                    resource.generate(request.getType(), args, out).write(out);
                 }
                 else // default page
                 {
@@ -94,10 +94,9 @@ public class Server
 
                 System.out.println("Closed the socket for " + host);
             }
-            catch (Throwable e)
+            catch (Throwable t)
             {
-                logger.warning(e.getMessage());
-                e.printStackTrace();
+                System.err.println(t.getMessage());
             }
         });
     }
