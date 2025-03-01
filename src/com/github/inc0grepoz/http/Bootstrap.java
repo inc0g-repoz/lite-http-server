@@ -4,18 +4,17 @@ import java.io.File;
 import java.util.StringJoiner;
 import java.util.logging.Logger;
 
-import com.github.inc0grepoz.http.server.Server;
-import com.github.inc0grepoz.http.server.response.Response;
-import com.github.inc0grepoz.http.server.response.ResponseBuilder;
-import com.github.inc0grepoz.http.server.response.ResponseContentType;
-import com.github.inc0grepoz.http.server.response.ResponseStatusCode;
+import com.github.inc0grepoz.http.response.Response;
+import com.github.inc0grepoz.http.response.ResponseBuilder;
+import com.github.inc0grepoz.http.response.ResponseContentType;
+import com.github.inc0grepoz.http.response.ResponseStatusCode;
 
 public class Bootstrap
 {
 
     public static void main(String[] args) throws Throwable
     {
-        Server server = new Server(Logger.getLogger("INFO"), 80);
+        HttpServer server = new HttpServer(Logger.getLogger("INFO"), 80);
 
         server.getContextManager().register("/api/test", (type, map) -> {
             ResponseBuilder builder = Response.builder();
