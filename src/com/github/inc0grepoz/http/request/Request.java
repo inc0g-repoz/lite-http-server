@@ -10,12 +10,9 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 import java.util.StringJoiner;
-import java.util.regex.Pattern;
 
 public class Request
 {
-
-    private static final Pattern PATTERN_QUERY = Pattern.compile("\\?");
 
     public static Request read(InputStream in) throws IOException
     {
@@ -33,17 +30,32 @@ public class Request
         return new Request(raw);
     }
 
-    private final RequestType type;
-    private final String path, queryString;
+    private final RequestMethod type;
+    private final String path, parameters;
+    private final Map<String, String> header = new HashMap<String, String>();
 
     private Request(Queue<String> raw)
     {
-        String[] context = raw.poll().split(" "); // gets optimized
-        type = RequestType.valueOf(context[0]);
+        // Reading the request line: <Method> <Request-URI> <HTTP-Version>
+        String line = raw.poll();
+        String[] requestLine = line.split(" "); // gets optimized
 
-        String[] target = PATTERN_QUERY.split(context[1], 2); // doesn't
-        path = target[0];
-        queryString = target.length == 1 ? null : target[1];
+        int pathEnd = requestLine[1].indexOf('?');
+        parameters = pathEnd == -1 ? null : requestLine[1].substring(pathEnd + 1);
+        path = pathEnd == -1 ? requestLine[1] : requestLine[1].substring(0, pathEnd);
+
+        // Reading the method
+        type = RequestMethod.valueOf(requestLine[0]);
+
+        // Reading headers
+        int pos;
+        while (!raw.isEmpty())
+        {
+            line = raw.poll();
+            pos = line.indexOf(':');
+
+            header.put(line.substring(0, pos), line.substring(pos + 2));
+        }
     }
 
     @Override
@@ -52,16 +64,17 @@ public class Request
 
         joiner.add("\"path\": \"" + path + "\"");
         joiner.add("\"method\": \"" + type + "\"");
+        joiner.add("\"host\": \"" + getHost() + "\"");
 
-        if (queryString != null)
+        if (parameters != null)
         {
-            joiner.add("\"queryString\": \"" + queryString + "\"");
+            joiner.add("\"query\": \"" + parameters + "\"");
         }
 
         return joiner.toString();
     }
 
-    public RequestType getType()
+    public RequestMethod getType()
     {
         return type;
     }
@@ -71,25 +84,30 @@ public class Request
         return path;
     }
 
-    public String getQueryString()
+    public String getRawParameters()
     {
-        return queryString;
+        return parameters;
     }
 
-    public boolean hasArguments()
+    public boolean hasParameters()
     {
-        return queryString != null;
+        return parameters != null;
     }
 
-    public Map<String, String> resolveArguments()
+    public String getHost()
     {
-        if (!hasArguments() || queryString.length() < 2)
+        return header.get("Host");
+    }
+
+    public Map<String, String> resolveParameters()
+    {
+        if (!hasParameters() || parameters.length() < 2)
         {
             return Collections.emptyMap();
         }
 
         // left&right
-        String[] argVal = queryString.split("&");
+        String[] argVal = parameters.split("&");
         if (argVal.length == 0 || argVal[0].isEmpty())
         {
             return Collections.emptyMap();

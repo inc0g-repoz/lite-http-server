@@ -1,6 +1,7 @@
 package com.github.inc0grepoz.http;
 
 import java.io.File;
+import java.util.Map;
 import java.util.StringJoiner;
 import java.util.logging.Logger;
 
@@ -16,9 +17,10 @@ public class Bootstrap
     {
         HttpServer server = new HttpServer(Logger.getLogger("INFO"), 80);
 
-        server.getContextManager().register("/api/test", (type, map) -> {
+        server.getServletManager().register("/api/test", (request) -> {
             ResponseBuilder builder = Response.builder();
             StringJoiner joiner = new StringJoiner("\n");
+            Map<String, String> map = request.resolveParameters();
 
             if (map.isEmpty())
             {
@@ -37,11 +39,11 @@ public class Bootstrap
             return builder.build();
         });
 
-        server.getContextManager().register("/redirect", (type, map) -> {
+        server.getServletManager().register("/redirect", (request) -> {
             return Response.redirect("https://google.com/");
         });
 
-        server.getContextManager().load(new File("resources.json"));
+        server.getServletManager().load(new File("resources.json"));
         server.start();
     }
 

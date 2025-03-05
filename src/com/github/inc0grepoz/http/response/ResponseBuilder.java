@@ -12,7 +12,7 @@ public class ResponseBuilder
 {
 
     private ResponseStatusCode code;
-    private Map<String, String> headers = new HashMap<>();
+    private Map<String, String> header = new HashMap<>();
     private InputStream content;
 
     public ResponseBuilder code(ResponseStatusCode code)
@@ -21,40 +21,40 @@ public class ResponseBuilder
         return this;
     }
 
-    public ResponseBuilder header(String key, String value)
+    public ResponseBuilder field(String key, String value)
     {
-        headers.compute(key, (k, v) -> value);
+        header.compute(key, (k, v) -> value);
         return this;
     }
 
-    public ResponseBuilder header(String key, int value)
+    public ResponseBuilder field(String key, int value)
     {
-        return header(key, Integer.toString(value));
+        return field(key, Integer.toString(value));
     }
 
     public ResponseBuilder contentType(String contentType)
     {
-        return header("Content-Type", contentType);
+        return field("Content-Type", contentType);
     }
 
     public ResponseBuilder contentType(ResponseContentType contentType)
     {
-        return header("Content-Type", contentType.toString());
+        return field("Content-Type", contentType.toString());
     }
 
     public ResponseBuilder contentEncoding(String contentEncoding)
     {
-        return header("Content-Encoding", contentEncoding);
+        return field("Content-Encoding", contentEncoding);
     }
 
     public ResponseBuilder contentLength(int contentLength)
     {
-        return header("Content-Length", contentLength);
+        return field("Content-Length", contentLength);
     }
 
     public ResponseBuilder location(String location)
     {
-        return header("Location", location);
+        return field("Location", location);
     }
 
     public ResponseBuilder content(String content)
@@ -73,8 +73,8 @@ public class ResponseBuilder
     public Response build()
     {
         Preconditions.checkNotNull(code);
-        Preconditions.checkArgument(!headers.isEmpty(), "No headers specified");
-        return new Response(code, headers, content);
+        Preconditions.checkArgument(!header.isEmpty(), "No headers specified");
+        return new Response(code, header, content);
     }
 
 }

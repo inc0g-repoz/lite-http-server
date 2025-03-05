@@ -6,8 +6,9 @@ package com.github.inc0grepoz.http.request;
  * 
  * @author inc0g-repoz
  */
-public enum RequestType
+public enum RequestMethod
 {
+
     /** 
      * Requests a representation of the specified resource.
      * Requests using GET should only retrieve data and should
@@ -51,4 +52,5 @@ public enum RequestType
      * Applies partial modifications to a resource.
      */
     PATH;
+
 }

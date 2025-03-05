@@ -1,4 +1,4 @@
-package com.github.inc0grepoz.http.context;
+package com.github.inc0grepoz.http.servlet;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,36 +12,36 @@ import com.github.inc0grepoz.commons.util.json.mapper.JsonException;
 import com.github.inc0grepoz.http.HttpServer;
 
 @SuppressWarnings("unchecked")
-public class ContextManager
+public class ServletManager
 {
 
     private final HttpServer server;
-    private final Map<String, Context> contexts = new ConcurrentHashMap<>();
+    private final Map<String, Servlet> contexts = new ConcurrentHashMap<>();
 
-    public ContextManager(HttpServer server)
+    public ServletManager(HttpServer server)
     {
         this.server = server;
     }
 
-    public Context find(String path)
+    public Servlet find(String path)
     {
         return contexts.get(path);
     }
 
-    public Context unregister(String path)
+    public Servlet unregister(String path)
     {
         return contexts.remove(path);
     }
 
-    public Context register(String path, Context resource)
+    public Servlet register(String path, Servlet resource)
     {
         contexts.put(path, resource);
         return resource;
     }
 
-    public Context register(String path, File file)
+    public Servlet register(String path, File file)
     {
-        Context context = ContextFile.from(file);
+        Servlet context = ServletFile.from(file);
         contexts.put(path, context);
         return context;
     }

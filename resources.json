@@ -1,8 +1,10 @@
 {
-  "/": "resources/pages/index.html",
-  "/auth": "resources/pages/auth.html",
-  "/cyr": "resources/pages/cyr.html",
-  "/doc": "resources/pages/doc.html",
+  "/": "resources/index.html",
+  "/auth": "resources/auth.html",
+  "/cyr": "resources/cyr.html",
+  "/doc": "resources/doc.html",
   "/image.jpg": "resources/files/image.jpg",
-  "/archive.zip": "resources/files/archive.zip"
+  "/archive.zip": "resources/files/archive.zip",
+  "/php.php": "resources/php.php",
+  "/php.html": "resources/php.html"
 }

@@ -5,16 +5,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import com.github.inc0grepoz.commons.util.json.mapper.JsonMapper;
-import com.github.inc0grepoz.http.context.Context;
-import com.github.inc0grepoz.http.context.ContextManager;
 import com.github.inc0grepoz.http.request.Request;
 import com.github.inc0grepoz.http.response.Response;
+import com.github.inc0grepoz.http.servlet.Servlet;
+import com.github.inc0grepoz.http.servlet.ServletManager;
 
 public class HttpServer
 {
@@ -24,7 +23,7 @@ public class HttpServer
 
     private final JsonMapper jsonMapper = new JsonMapper();
     private final ExecutorService executorService = Executors.newCachedThreadPool();
-    private final ContextManager contextManager = new ContextManager(this);
+    private final ServletManager servletManager = new ServletManager(this);
 
     // The server is running as long, as this value is true
     private boolean running;
@@ -63,19 +62,17 @@ public class HttpServer
                 OutputStream out = clientSocket.getOutputStream();
 
                 Request request = Request.read(in);
-                Context resource = contextManager.find(request.getPath());
+                Servlet resource = servletManager.find(request.getPath());
 
                 String host = clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getPort();
                 System.out.println("Handling a request from " + host + " " + request.toString());
 
                 if (resource != null) // method call
                 {
-                    Map<String, String> args = request.resolveArguments();
-                    resource.generate(request.getType(), args).write(out);
+                    resource.generate(request).write(out);
                 }
                 else // default page
                 {
-                    
                     Response.notFound().write(out);
                 }
 
@@ -149,9 +146,9 @@ public class HttpServer
         return executorService;
     }
 
-    public ContextManager getContextManager()
+    public ServletManager getServletManager()
     {
-        return contextManager;
+        return servletManager;
     }
 
 }

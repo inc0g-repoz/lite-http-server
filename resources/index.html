@@ -1,17 +1,16 @@
 <html>
   <head>
     <title>inc0g-repoz HTTP-server</title>
-	<!--
-    <link rel="icon" href="https://static.wikia.nocookie.net/imm1/images/4/4a/Site-favicon.ico/revision/latest?cb=20230302201511">
-	-->
-    <!--
-	<style>
-      h1 {text-align: center;}
-    </style>
-	-->
   </head>
   <body>
-    <h1>Hello, kitten!</h1>
+    <h1>Hello, <span id="name">kitten</span>!</h1>
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const name = params.get('name');
+      if (name) {
+        document.getElementById("name").innerHTML = name;
+      }
+    </script>
     <p>
       Other resources:<br>
       <a href="auth">Authorize</a><br>

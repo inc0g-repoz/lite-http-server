@@ -45,13 +45,13 @@ public class Response
     }
 
     private final ResponseStatusCode code;
-    private final Map<String, String> headers;
+    private final Map<String, String> header;
     private final InputStream content;
 
-    Response(ResponseStatusCode code, Map<String, String> headers, InputStream content)
+    Response(ResponseStatusCode code, Map<String, String> header, InputStream content)
     {
         this.code = code;
-        this.headers = headers;
+        this.header = header;
         this.content = content;
     }
 
@@ -64,10 +64,10 @@ public class Response
         out.write(("Date: Fri, 31 Dec 1999 23:59:59 GMT\r\n").getBytes());
         out.write(("Server: Apache/0.8.4\r\n").getBytes());
 
-        for (Entry<String, String> entry: headers.entrySet())
+        for (Entry<String, String> field: header.entrySet())
         {
-            out.write((entry.getKey() + ": " + entry.getValue() + "\r\n").getBytes());
-            System.out.println("Sending header " + entry.getKey() + ": " + entry.getValue());
+            out.write((field.getKey() + ": " + field.getValue() + "\r\n").getBytes());
+            System.out.println("Sending header " + field.getKey() + ": " + field.getValue());
         }
 
         out.write(("Expires: Sat, 01 Jan 2000 00:59:59 GMT\r\n").getBytes());
