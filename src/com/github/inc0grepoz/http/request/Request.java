@@ -10,9 +10,15 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 import java.util.StringJoiner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Request
 {
+
+    private static final Pattern PATTERN_HOST = Pattern.compile("(?:(.+)\\.)?"
+            + "(localhost|\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})"
+            + "(?:\\:(\\d{1,5}))?");
 
     public static Request read(InputStream in) throws IOException
     {
@@ -31,7 +37,7 @@ public class Request
     }
 
     private final RequestMethod type;
-    private final String path, parameters;
+    private final String path, parameters, domain, subdomain;
     private final Map<String, String> header = new HashMap<String, String>();
 
     private Request(Queue<String> raw)
@@ -56,6 +62,10 @@ public class Request
 
             header.put(line.substring(0, pos), line.substring(pos + 2));
         }
+
+        Matcher matcher = PATTERN_HOST.matcher(getField("Host"));
+        domain = matcher.find() ? matcher.group(2) : null;
+        subdomain = matcher.group(1);
     }
 
     @Override
@@ -64,7 +74,12 @@ public class Request
 
         joiner.add("\"path\": \"" + path + "\"");
         joiner.add("\"method\": \"" + type + "\"");
-        joiner.add("\"host\": \"" + getHost() + "\"");
+        joiner.add("\"domain\" : \"" + domain + "\"");
+
+        if (subdomain != null)
+        {
+            joiner.add("\"subdomain\": \"" + subdomain + "\"");
+        }
 
         if (parameters != null)
         {
@@ -94,9 +109,19 @@ public class Request
         return parameters != null;
     }
 
-    public String getHost()
+    public String getField(String field)
     {
-        return header.get("Host");
+        return header.get(field);
+    }
+
+    public String getDomain()
+    {
+        return domain;
+    }
+
+    public String getSubdomain()
+    {
+        return subdomain;
     }
 
     public Map<String, String> resolveParameters()
