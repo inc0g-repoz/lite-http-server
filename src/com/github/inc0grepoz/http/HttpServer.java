@@ -87,7 +87,7 @@ public class HttpServer
             }
             catch (Throwable t)
             {
-                System.err.println(t.getMessage());
+                System.err.println(t.getClass() + ": " + t.getMessage());
             }
         });
     }
@@ -121,9 +121,9 @@ public class HttpServer
             {
                 serverSocket.close();
             }
-            catch (Throwable e)
+            catch (Throwable t)
             {
-                System.err.println(e.getMessage());
+                System.err.println(t.getClass() + ": " + t.getMessage());
             }
         });
     }

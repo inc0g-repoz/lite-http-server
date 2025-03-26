@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata modelVersion="1.1.0">
+  <groupId>io.papermc.paper</groupId>
+  <artifactId>paper-api</artifactId>
+  <versioning>
+    <latest>1.21.4-R0.1-SNAPSHOT</latest>
+    <versions>
+      <version>1.21.4-R0.1-SNAPSHOT</version>
+    </versions>
+    <lastUpdated>20250325050158</lastUpdated>
+  </versioning>
+</metadata>

@@ -83,9 +83,17 @@ public class Response
 
         // Content (StandardCharsets.UTF_8 breaks it)
         byte[] buffer = new byte[4096];
-        while (content.read(buffer) != -1)
+
+        try (InputStream in = content)
         {
-            out.write(buffer);
+            while (content.read(buffer) != -1)
+            {
+                out.write(buffer);
+            }
+        }
+        catch (Throwable t)
+        {
+            throw new RuntimeException(t);
         }
     }
 
