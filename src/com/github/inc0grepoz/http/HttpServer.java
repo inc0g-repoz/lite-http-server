@@ -1,16 +1,20 @@
 package com.github.inc0grepoz.http;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import com.github.inc0grepoz.commons.util.json.mapper.JsonMapper;
 import com.github.inc0grepoz.http.addon.AddonLoader;
+import com.github.inc0grepoz.http.config.Config;
 import com.github.inc0grepoz.http.request.Request;
 import com.github.inc0grepoz.http.response.Response;
 import com.github.inc0grepoz.http.servlet.Servlet;
@@ -19,8 +23,9 @@ import com.github.inc0grepoz.http.servlet.ServletManager;
 public class HttpServer
 {
 
-    private final int port;
-    private final Logger logger;
+    private final Config config;
+
+    private final Logger logger = Logger.getLogger("INFO");
 
     private final JsonMapper jsonMapper = new JsonMapper();
     private final ExecutorService executorService = Executors.newCachedThreadPool();
@@ -30,10 +35,30 @@ public class HttpServer
     // The server is running as long, as this value is true
     private boolean running;
 
-    public HttpServer(Logger logger, int port)
+    public HttpServer(File configFile)
     {
-        this.logger = logger;
-        this.port = port;
+        try
+        {
+            String configFileContent = Files.readAllLines(configFile.toPath())
+                    .stream().collect(Collectors.joining());
+            config = jsonMapper.deserialize(configFileContent, Config.class);
+        }
+        catch (Throwable t)
+        {
+            throw new RuntimeException("Failed to read the configuration file");
+        }
+
+        if (config.getCertificate().isEnabled())
+        {
+            try
+            {
+                config.getCertificate().init();
+            }
+            catch (Throwable t)
+            {
+                System.err.println("Failed to initialize a certificate");
+            }
+        }
     }
 
     private void loop(ServerSocket serverSocket)
@@ -107,7 +132,7 @@ public class HttpServer
         running = true;
 
         // Initializing the server socket
-        ServerSocket serverSocket = new ServerSocket(port);
+        ServerSocket serverSocket = new ServerSocket(config.getPort());
 
         // Handling new connections in a different thread
         executorService.execute(() -> {
@@ -131,6 +156,11 @@ public class HttpServer
     public void stop()
     {
         running = false;
+    }
+
+    public Config getConfig()
+    {
+        return config;
     }
 
     public Logger getLogger()

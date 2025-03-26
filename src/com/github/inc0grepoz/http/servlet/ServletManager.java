@@ -2,16 +2,12 @@ package com.github.inc0grepoz.http.servlet;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 import com.github.inc0grepoz.commons.util.json.mapper.JsonException;
 import com.github.inc0grepoz.http.HttpServer;
 
-@SuppressWarnings("unchecked")
 public class ServletManager
 {
 
@@ -63,20 +59,9 @@ public class ServletManager
         return context;
     }
 
-    public void load(File file) throws JsonException, IOException
+    public void load() throws JsonException, IOException
     {
-        // Validating the resources file
-        if (!file.exists())
-        {
-            throw new IOException("File resources.json not found");
-        }
-
-        // Loading the resources.json file
-//      Path path = FileSystems.getDefault().getPath("resources.json");
-        String lines = Files.readAllLines(file.toPath()).stream().collect(Collectors.joining());
-
-        // Registering contexts declared in the file above
-        Map<String, String> resources = server.getJsonMapper().deserialize(lines, HashMap.class, String.class, String.class);
+        Map<String, String> resources = server.getConfig().getResources();
         resources.forEach((route, filePath) -> register(route, new File(filePath)));
     }
 

@@ -1,9 +1,0 @@
-{
-  "/": "resources/index.html",
-  "/auth": "resources/auth.html",
-  "/cyr": "resources/cyr.html",
-  "/doc": "resources/doc.html",
-  "/image.jpg": "resources/files/image.jpg",
-  "/archive.zip": "resources/files/archive.zip",
-  "/php": "resources/php.php"
-}
