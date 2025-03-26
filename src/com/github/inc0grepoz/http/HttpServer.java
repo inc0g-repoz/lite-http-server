@@ -10,6 +10,7 @@ import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import com.github.inc0grepoz.commons.util.json.mapper.JsonMapper;
+import com.github.inc0grepoz.http.addon.AddonLoader;
 import com.github.inc0grepoz.http.request.Request;
 import com.github.inc0grepoz.http.response.Response;
 import com.github.inc0grepoz.http.servlet.Servlet;
@@ -24,6 +25,7 @@ public class HttpServer
     private final JsonMapper jsonMapper = new JsonMapper();
     private final ExecutorService executorService = Executors.newCachedThreadPool();
     private final ServletManager servletManager = new ServletManager(this);
+    private final AddonLoader addonLoader = new AddonLoader(this);
 
     // The server is running as long, as this value is true
     private boolean running;
@@ -62,7 +64,7 @@ public class HttpServer
                 OutputStream out = clientSocket.getOutputStream();
 
                 Request request = Request.read(in);
-                Servlet resource = servletManager.find(request.getPath());
+                Servlet resource = servletManager.findPrefix(request.getPath());
 
                 String host = clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getPort();
                 System.out.println("Handling a request from " + host + " " + request.toString());
@@ -149,6 +151,11 @@ public class HttpServer
     public ServletManager getServletManager()
     {
         return servletManager;
+    }
+
+    public AddonLoader getAddonLoader()
+    {
+        return addonLoader;
     }
 
 }

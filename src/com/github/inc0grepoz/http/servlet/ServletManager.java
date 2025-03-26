@@ -23,7 +23,24 @@ public class ServletManager
         this.server = server;
     }
 
-    public Servlet find(String path)
+    public Servlet findPrefix(String prefix)
+    {
+        Servlet servlet;
+
+        while (!prefix.isEmpty())
+        {
+            if ((servlet = findExact(prefix)) != null)
+            {
+                return servlet;
+            }
+
+            prefix = prefix.substring(0, prefix.lastIndexOf('/'));
+        }
+
+        return null;
+    }
+
+    public Servlet findExact(String path)
     {
         return contexts.get(path);
     }

@@ -5,6 +5,5 @@
   "/doc": "resources/doc.html",
   "/image.jpg": "resources/files/image.jpg",
   "/archive.zip": "resources/files/archive.zip",
-  "/php.php": "resources/php.php",
-  "/php.html": "resources/php.html"
+  "/php": "resources/php.php"
 }
