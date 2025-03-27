@@ -1,6 +1,7 @@
 {
   "certificate": {
-    "enabled": true,
+    "enabled": false,
+    "keyPassword": "MY_PASSWORD",
     "path": "mycert.p12"
   },
   "port": 80,

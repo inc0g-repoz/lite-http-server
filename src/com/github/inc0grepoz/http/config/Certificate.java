@@ -21,7 +21,7 @@ public class Certificate
 {
 
     private boolean enabled;
-    private String path;
+    private String keyPassword, path;
 
     // JSON-mapper constructor
     private Certificate() {}
@@ -84,7 +84,7 @@ public class Certificate
         sc_ssl.init(null, trustAllCerts, new java.security.SecureRandom());
         HttpsURLConnection.setDefaultSSLSocketFactory(sc_ssl.getSocketFactory());
 
-        char[] keyPassword =  "MY_PASSWORD".toCharArray();
+        char[] keyPassword =  this.keyPassword.toCharArray();
         KeyStore keystore = KeyStore.getInstance("PKCS12");
         keystore.load(in, keyPassword);
 

@@ -12,6 +12,8 @@ import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import javax.net.ssl.SSLServerSocketFactory;
+
 import com.github.inc0grepoz.commons.util.json.mapper.JsonMapper;
 import com.github.inc0grepoz.http.addon.AddonLoader;
 import com.github.inc0grepoz.http.config.Config;
@@ -132,7 +134,15 @@ public class HttpServer
         running = true;
 
         // Initializing the server socket
-        ServerSocket serverSocket = new ServerSocket(config.getPort());
+        ServerSocket serverSocket;
+        if (config.getCertificate().isEnabled())
+        {
+            serverSocket = SSLServerSocketFactory.getDefault().createServerSocket(config.getPort());
+        }
+        else
+        {
+            serverSocket = new ServerSocket(config.getPort());
+        }
 
         // Handling new connections in a different thread
         executorService.execute(() -> {

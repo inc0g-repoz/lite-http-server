@@ -33,6 +33,17 @@ public class Response
                 .build();
     }
 
+    public static Response forbidden()
+    {
+        return Response.builder()
+                .code(ResponseStatusCode.FORBIDDEN)
+                .contentType(ResponseContentType.TEXT_HTML)
+                .content("<html><head><title>403 Forbidden</title></head><body bgcolor=\"white\">"
+                        + "<center><h1>403 Forbidden</h1></center><hr>"
+                        + "<center>nginx/0.8.54</center></body></html>")
+                .build();
+    }
+
     public static Response gone()
     {
         return builder()
