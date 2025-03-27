@@ -2,26 +2,21 @@ package com.github.inc0grepoz.http.config;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.security.KeyStore;
-import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 public class Certificate
 {
 
     private boolean enabled;
     private String keyPassword, path;
+
+    transient SSLServerSocketFactory sslssFactory;
 
     // JSON-mapper constructor
     private Certificate() {}
@@ -36,77 +31,66 @@ public class Certificate
         return path;
     }
 
+    public SSLServerSocketFactory getServerSocketFactory()
+    {
+        return sslssFactory;
+    }
+
     public void init() throws Throwable
     {
         init(new FileInputStream(path));
     }
 
-    @SuppressWarnings("unused")
-    private void initFromJar() throws Throwable
-    {
-        init(getClass().getClassLoader().getResourceAsStream("MY_CERT.p12"));
-    }
-
     private void init(InputStream in) throws Throwable
     {
-        HttpsURLConnection.setDefaultHostnameVerifier(
-            new HostnameVerifier()
-            {
+        System.out.println("Configuring an SSL certificate");
+        char[] pw = keyPassword.toCharArray();
 
-                @Override
-                public boolean verify(String hostname, SSLSession sslSession)
-                {
-                    return true;
-                }
+        // Load the keystore
+        KeyStore ks = KeyStore.getInstance(getKeyStoreType(path));
+        try (InputStream keystoreFile = in)
+        {
+            ks.load(keystoreFile, pw);
+        }
+        printKeyAliases(ks, System.out);
 
-            }
-        );
+        // Set up KeyManagerFactory
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+        kmf.init(ks, pw);
 
-        TrustManager[] trustAllCerts = new TrustManager[] {
-            new X509TrustManager() {
+        // Set up SSLContext
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(kmf.getKeyManagers(), null, null);
 
-                @Override
-                public X509Certificate[] getAcceptedIssuers()
-                {
-                    return new X509Certificate[0];
-                }
+        // Create SSLServerSocketFactory
+        sslssFactory = sslContext.getServerSocketFactory();
+        System.out.println("Initialized an SSL server socket factory");
+    }
 
-                @Override
-                public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+    private String getKeyStoreType(String filename)
+    {
+        int dotIdx = filename.lastIndexOf('.');
+        String ext = filename.substring(dotIdx);
 
-                @Override
-                public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+        switch (ext)
+        {
+        case ".jks":
+            return "JKS";
+        case ".p12":
+            return "PKCS12";
+        default:
+            throw new IllegalArgumentException("Unknown keystore type: " + ext);
+        }
+    }
 
-            }
-        };
+    private void printKeyAliases(KeyStore keyStore, PrintStream out) throws Throwable
+    {
+        Enumeration<String> aliases = keyStore.aliases();
 
-        SSLContext sc_ssl = SSLContext.getInstance("SSL");
-        sc_ssl.init(null, trustAllCerts, new java.security.SecureRandom());
-        HttpsURLConnection.setDefaultSSLSocketFactory(sc_ssl.getSocketFactory());
-
-        char[] keyPassword =  this.keyPassword.toCharArray();
-        KeyStore keystore = KeyStore.getInstance("PKCS12");
-        keystore.load(in, keyPassword);
-
-        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        keyManagerFactory.init(keystore, keyPassword);      
-        KeyManager keyManagers[] = keyManagerFactory.getKeyManagers();
-
-        Enumeration<String> aliases = keystore.aliases();
-        String keyAlias = "";
         while (aliases.hasMoreElements())
         {
-            keyAlias = (String) aliases.nextElement();
-            System.out.println("Key found: " + keyAlias);
+            out.println("Key alias found: " + aliases.nextElement());
         }
-
-        SSLContext sc_tls = SSLContext.getInstance("TLS"); 
-        sc_tls.init(keyManagers, null, null);
-
-        SSLServerSocketFactory sslContextFactory = (SSLServerSocketFactory) sc_tls.getServerSocketFactory();
-        SSLServerSocket ssl = (SSLServerSocket) sslContextFactory.createServerSocket(32567);     
-        ssl.setEnabledProtocols(new String[] { "TLSv1", "TLSv1.1", "TLSv1.2", "SSLv3" });
-        ssl.setEnabledCipherSuites(sslContextFactory.getSupportedCipherSuites());
     }
 
 }

@@ -1,10 +1,10 @@
 {
   "certificate": {
-    "enabled": false,
+    "enabled": true,
     "keyPassword": "MY_PASSWORD",
     "path": "mycert.p12"
   },
-  "port": 80,
+  "port": 443,
   "resources": {
     "/": "resources/index.html",
     "/auth": "resources/auth.html",

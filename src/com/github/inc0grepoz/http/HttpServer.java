@@ -12,8 +12,6 @@ import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import javax.net.ssl.SSLServerSocketFactory;
-
 import com.github.inc0grepoz.commons.util.json.mapper.JsonMapper;
 import com.github.inc0grepoz.http.addon.AddonLoader;
 import com.github.inc0grepoz.http.config.Config;
@@ -114,7 +112,7 @@ public class HttpServer
             }
             catch (Throwable t)
             {
-                System.err.println(t.getClass() + ": " + t.getMessage());
+                System.err.println(t.getClass().getName() + ": " + t.getMessage());
             }
         });
     }
@@ -137,7 +135,8 @@ public class HttpServer
         ServerSocket serverSocket;
         if (config.getCertificate().isEnabled())
         {
-            serverSocket = SSLServerSocketFactory.getDefault().createServerSocket(config.getPort());
+            serverSocket = config.getCertificate().getServerSocketFactory()
+                    .createServerSocket(config.getPort());
         }
         else
         {
@@ -158,7 +157,7 @@ public class HttpServer
             }
             catch (Throwable t)
             {
-                System.err.println(t.getClass() + ": " + t.getMessage());
+                System.err.println(t.getClass().getName() + ": " + t.getMessage());
             }
         });
     }
