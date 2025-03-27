@@ -1,5 +1,22 @@
 # Secrets
 *.p12
+*.jks
+
+# Eclipse project files
+*.pydevproject
+.project
+.metadata
+**/bin/**
+tmp/**
+tmp/**/*
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.classpath
+.settings/
+.loadpath
 
 # Compiled class file
 *.class
